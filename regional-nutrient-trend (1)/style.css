@@ -1,0 +1,38 @@
+body {
+  font-family: Arial, sans-serif;
+  font-size: 0.875rem;
+  margin: 0;
+  color: #222;
+}
+
+.container {
+  width: 1240px;
+  margin: auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 2rem;
+}
+
+fieldset {
+  margin-bottom: 2rem;
+}
+
+svg text {
+  font-family: inherit;
+  font-size: 0.75rem;
+}
+
+/* Add a white halo to the dot text so it can be read above the lines and line texts */
+.dot-text {
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  paint-order: stroke;
+}
+
+/* Make the selected radio button/checkbox label bold */
+input:checked + label {
+  font-weight: bold;
+}
