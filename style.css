@@ -23,6 +23,11 @@ svg text {
   font-size: 0.75rem;
 }
 
+.threshold-rect {
+  fill: #c46060;
+  fill-opacity: 0.15;
+}
+
 /* Add a white halo to the dot text so it can be read above the lines and line texts */
 .dot-text {
   stroke: #fff;

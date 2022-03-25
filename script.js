@@ -1,4 +1,6 @@
-d3.csv("data.csv").then((csv) => {
+const COLOR_SCHEME = ["#1f77b4", "#ff7f0e"];
+
+d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRrIczteAx_TRc-MH_b7LsnAExus3dJ8Nq2NiJW98UuabdrUI5xHIJXSa2NsCD7s3ELycgNJBQ9k7zj/pub?output=csv").then((csv) => {
   const { data, years, nutrientTypes, regions } = processData(csv);
 
   // Initial filter values
@@ -37,7 +39,7 @@ d3.csv("data.csv").then((csv) => {
   // Multiline trend chart
   const chartContainer = d3.select("#chart");
 
-  const chart = renderChart(chartContainer, years);
+  const chart = renderChart(chartContainer, years, data);
   chart.updateData(filteredData);
 });
 
@@ -134,7 +136,7 @@ function renderRegionsControl(container, regions, initialValues) {
   const colorScale = d3
     .scaleOrdinal()
     .domain(initialValues)
-    .range(d3.schemeCategory10)
+    .range(COLOR_SCHEME)
     .unknown("currentColor");
 
   const fieldset = container.append("fieldset");
@@ -199,13 +201,13 @@ function renderRegionsControl(container, regions, initialValues) {
  * Multiline trend chart
  */
 // Modified from https://observablehq.com/@d3/multi-line-chart
-function renderChart(container, years) {
-  let data, regions, flatData, delaunay, iDelaunay, gLine, gDot;
+function renderChart(container, years, data) {
+  let regions, flatData, delaunay, iDelaunay, gLine, gDot;
 
   // Dimensions
   const margin = {
     top: 30,
-    right: 170,
+    right: 180,
     bottom: 30,
     left: 30,
   };
@@ -220,7 +222,7 @@ function renderChart(container, years) {
 
   const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 
-  const colorScale = d3.scaleOrdinal().range(d3.schemeCategory10);
+  const colorScale = d3.scaleOrdinal().range(COLOR_SCHEME);
 
   const xAxis = d3
     .axisBottom(xScale)
@@ -248,6 +250,8 @@ function renderChart(container, years) {
     .on("mousemove", handleMouseMove)
     .on("mouseleave", handleMouseLeave);
 
+  const thresholdRect = svg.append("rect").attr("class", "threshold-rect");
+
   // X axis
   svg
     .append("g")
@@ -271,7 +275,10 @@ function renderChart(container, years) {
 
   function processData() {
     // Update y scale domain
-    const minY = d3.min(data, (d) => d3.min(d.values));
+    const minY = Math.min(
+      90, // The min starts from at least 90 so there's space for the band below 100
+      d3.min(data, (d) => d3.min(d.values))
+    );
     const maxY = d3.max(data, (d) => d3.max(d.values));
     yScale.domain([minY, maxY]).nice();
 
@@ -302,6 +309,13 @@ function renderChart(container, years) {
 
   // Draw dynamic elements
   function updateChart() {
+    // Threshold rect
+    thresholdRect
+      .attr("x", margin.left)
+      .attr("y", yScale(100) || height - margin.bottom)
+      .attr("width", width - margin.left - margin.right)
+      .attr("height", yScale.range()[0] - yScale(100) || 0);
+
     // Y axis
     gYAxis
       .call(yAxis)
@@ -314,7 +328,10 @@ function renderChart(container, years) {
       )
       .call((g) =>
         g
-          .append("text")
+          .selectAll(".axis-title")
+          .data([0])
+          .join("text")
+          .attr("class", "axis-title")
           .attr("x", -margin.left)
           .attr("y", 15)
           .attr("fill", "currentColor")
@@ -339,7 +356,7 @@ function renderChart(container, years) {
             g
               .append("text")
               .attr("class", "line-text")
-              .attr("x", width - margin.right + 6)
+              .attr("x", width - margin.right + 12)
               .attr("dy", "0.32em")
               .text((d) => d.nutrient)
           )
